@@ -14,7 +14,7 @@ func main() {
 	router.HandleFunc("GET /health", handlers.HealthHandler)
 
 	store := store.NewTaskStore()
-	taskHandler := handlers.NewTaskHandler(&store);
+	taskHandler := handlers.NewTaskHandler(store);
 
 	router.HandleFunc("GET /tasks", taskHandler.List)
 	router.HandleFunc("POST /tasks", taskHandler.Create)

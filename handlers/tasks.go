@@ -2,8 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
-	"maps"
+	"fmt"
 	"net/http"
 
 	"github.com/nathan-the-coder/crud-tasks/store"
@@ -29,7 +28,10 @@ func (h *TaskHandler) Get(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	response, err := h.Store.Get(id)
 	if err != nil {
-		log.Fatalf("Failed to get task %s", id)
+		fmt.Println(err)
+		utils.WriteJSONResponse(w, http.StatusInternalServerError, map[string]any{
+			"error": fmt.Sprintf("Task with id of '%s' doesn't exist.", id),
+		})
 	}
 	utils.WriteJSONResponse(w, http.StatusOK, response)
 }
@@ -39,15 +41,21 @@ func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	var task store.Task
 	if err := json.Unmarshal([]byte(bodyData), &task); err != nil {
-		log.Fatalf("Failed to read request body: %s", err)
+		fmt.Println(err)
+		utils.WriteJSONResponse(w, http.StatusInternalServerError, map[string]any{
+			"error": "Internal server error. Please try again later.",
+		})
 	}
 
 	_, err := h.Store.Create(task.Title, task.Description)
 	if err != nil {
-		log.Fatalf("Failed to create task: %s", err)
+		fmt.Println(err)
+		utils.WriteJSONResponse(w, http.StatusInternalServerError, map[string]any{
+			"error": "Internal Server Error.",
+		})
 	}
 
-	response := map[string]any {
+	response := map[string]any{
 		"message": "Task Created Successfully",
 	}
 

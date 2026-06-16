@@ -21,8 +21,8 @@ type TaskStore struct {
 	tasks map[string]Task
 }
 
-func NewTaskStore() TaskStore {
-	return TaskStore{tasks: make(map[string]Task)}
+func NewTaskStore() *TaskStore {
+	return &TaskStore{tasks: make(map[string]Task)}
 }
 
 func (ts *TaskStore) Create(title string, description string) (string, error) {
