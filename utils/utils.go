@@ -6,21 +6,12 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/devjefster/GoShortUniqueID/idgen"
 )
 
-func IDGen() string {
-	idGen := idgen.New(6, "", "")
-	id := ""
-
-	for range 5 {
-		id = idGen.Generate()
-	}
-	return id
-}
 
 func WriteJSONResponse(w http.ResponseWriter, status int, response any) {
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
 	e := json.NewEncoder(w)
 	e.SetIndent("", "    ")
 	e.Encode(response)

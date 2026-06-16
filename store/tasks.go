@@ -1,93 +1,74 @@
 package store
 
 import (
-	"fmt"
-	"maps"
-	"time"
+	"context"
+	"database/sql"
 
-	"github.com/nathan-the-coder/crud-tasks/utils"
+	"github.com/nathan-the-coder/crud-tasks/db"
 )
 
-type Task struct {
-	Id          string  `json:"id"`
-	Title       string  `json:"title"`
-	Description string  `json:"description"`
-	Status      string  `json:"status"`
-	CompletedAt *string `json:"completed_at,omitempty"`
-	UpdatedAt   *string `json:"updated_at,omitempty"`
+func NewTaskStore(q *db.Queries) *TaskStore {
+	return &TaskStore{queries: q}
 }
 
-type TaskStore struct {
-	tasks map[string]Task
-}
+func (ts *TaskStore) Create(ctx context.Context, title string, description string) (int64, error) {
 
-func NewTaskStore() *TaskStore {
-	return &TaskStore{tasks: make(map[string]Task)}
-}
-
-func (ts *TaskStore) Create(title string, description string) (string, error) {
-	id := utils.IDGen()
-
-	// Check for duplicates
-	for _, v := range ts.tasks {
-		if v.Title == title {
-			return "", fmt.Errorf("Existing record of task with a title of '%s' found.", title)
-		}
+	arg := db.CreateTaskParams{
+		Title: title,
+		Description: sql.NullString{String: description, Valid: false},
 	}
 
-	ts.tasks[id] = Task{
-		Id: id,
-		Title:       title,
-		Description: description,
-		Status:      "todo",
+	result, err := ts.queries.CreateTask(ctx, arg)
+	if err != nil {
+		return 0, err
 	}
 
-	return id, nil
-}
-
-func (ts *TaskStore) Get(id string) (*Task, error) {
-	task, ok := ts.tasks[id]
-
-	if !ok {
-		return nil, fmt.Errorf("No record of id ('%s') found", id)
+	insertedTaskID, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
 	}
 
-	return &task, nil
+	return insertedTaskID, nil
 }
 
-func (ts *TaskStore) List() map[string]Task {
-	return ts.tasks
-}
+func (ts *TaskStore) Get(ctx context.Context, id int64) (*db.Task, error) {
 
-func (ts *TaskStore) Mark(id string, status string) (string, error) {
-
-	time := time.Now().Format("2006-01-02 15:04:05")
-
-	task := ts.tasks[id]
-	fmt.Println(task.Id, id)
-	if task.Id == "" {
-		return "", fmt.Errorf("Task (%s) doesn't exists.", id)
+	result, err := ts.queries.GetTask(ctx, id)
+	if err != nil {
+		return nil, err;	
 	}
 
-	task.Status = status
-	switch status {
-case "done":
-		task.CompletedAt = &time
-	case "in-progress", "todo":
-		task.UpdatedAt = &time
-	default:
-		return "", fmt.Errorf("Task Status '%s' doesn't exist. Please try 'todo', 'in-progress' or 'done'.", status)
-	}
-
-	ts.tasks[id] = task
-	return id, nil
+	return &result, nil
 }
 
-func (ts *TaskStore) Delete(id string) {
-	maps.DeleteFunc(ts.tasks, func(k string, v Task) bool {
-		if k == id {
-			return true 
-		}
-		return false
+func (ts *TaskStore) List(ctx context.Context) ([]db.Task, error) {
+	result, err := ts.queries.ListTasks(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (ts *TaskStore) Mark(ctx context.Context, id int64, status string) error {
+
+	err := ts.queries.UpdateTaskStatus(ctx, db.UpdateTaskStatusParams{
+		ID: id,
+		Status: db.TasksStatus(status),
 	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ts *TaskStore) Delete(ctx context.Context, id int64) error {
+	err := ts.queries.DeleteTask(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
