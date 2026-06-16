@@ -15,7 +15,7 @@ func (ts *TaskStore) Create(ctx context.Context, title string, description strin
 
 	arg := db.CreateTaskParams{
 		Title: title,
-		Description: sql.NullString{String: description, Valid: false},
+		Description: sql.NullString{String: description, Valid: true},
 	}
 
 	result, err := ts.queries.CreateTask(ctx, arg)

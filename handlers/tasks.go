@@ -22,14 +22,15 @@ func NewTaskHandler(store *store.TaskStore) *TaskHandler {
 
 func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	response, err := h.Store.List(ctx)
+	tasks, err := h.Store.List(ctx)
+
 	if err != nil {
 		fmt.Println(err)
 		utils.WriteISError(w, fmt.Sprintf("%s", err))
 		return
 	}
 
-	utils.WriteJSONResponse(w, http.StatusOK, response)
+	utils.WriteJSONResponse(w, http.StatusOK, tasks)
 }
 
 func (h *TaskHandler) Get(w http.ResponseWriter, r *http.Request) {
