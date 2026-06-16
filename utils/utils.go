@@ -41,3 +41,10 @@ func ReadBody(r *http.Request) []byte {
 
 	return data
 }
+
+func WriteISError(w http.ResponseWriter, estr string) {
+		WriteJSONResponse(w, http.StatusInternalServerError, map[string]any{
+			"error": estr,
+		})
+
+}

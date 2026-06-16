@@ -29,8 +29,10 @@ func (ts *TaskStore) Create(title string, description string) (string, error) {
 	id := utils.IDGen()
 
 	// Check for duplicates
-	if ts.tasks[id].Title == title {
-		return "", fmt.Errorf("Existing record of task '%s' found.", title)
+	for _, v := range ts.tasks {
+		if v.Title == title {
+			return "", fmt.Errorf("Existing record of task with a title of '%s' found.", title)
+		}
 	}
 
 	ts.tasks[id] = Task{
@@ -57,14 +59,28 @@ func (ts *TaskStore) List() map[string]Task {
 	return ts.tasks
 }
 
-func (ts *TaskStore) Complete(id string) {
+func (ts *TaskStore) Mark(id string, status string) (string, error) {
+
 	time := time.Now().Format("2006-01-02 15:04:05")
 
 	task := ts.tasks[id]
-	task.Status = "done"
-	task.CompletedAt = &time
+	fmt.Println(task.Id, id)
+	if task.Id == "" {
+		return "", fmt.Errorf("Task (%s) doesn't exists.", id)
+	}
+
+	task.Status = status
+	switch status {
+case "done":
+		task.CompletedAt = &time
+	case "in-progress", "todo":
+		task.UpdatedAt = &time
+	default:
+		return "", fmt.Errorf("Task Status '%s' doesn't exist. Please try 'todo', 'in-progress' or 'done'.", status)
+	}
 
 	ts.tasks[id] = task
+	return id, nil
 }
 
 func (ts *TaskStore) Delete(id string) {
