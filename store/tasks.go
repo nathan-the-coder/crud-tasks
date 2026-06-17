@@ -7,8 +7,27 @@ import (
 	"github.com/nathan-the-coder/crud-tasks/db"
 )
 
+
 func NewTaskStore(q *db.Queries) *TaskStore {
 	return &TaskStore{queries: q}
+}
+
+func toDTO(dbTask db.Task) Task {
+	task := Task{
+		Id:          dbTask.ID,
+		Title:       dbTask.Title,
+		Description: dbTask.Description.String,
+		Status:      string(dbTask.Status),
+	}
+
+	if dbTask.CompletedAt.Valid {
+		task.CompletedAt = &dbTask.CompletedAt.Time
+	}
+	if dbTask.UpdatedAt.Valid {
+		task.UpdatedAt = &dbTask.UpdatedAt.Time
+	}
+
+	return task
 }
 
 func (ts *TaskStore) Create(ctx context.Context, title string, description string) (int64, error) {
@@ -31,23 +50,32 @@ func (ts *TaskStore) Create(ctx context.Context, title string, description strin
 	return insertedTaskID, nil
 }
 
-func (ts *TaskStore) Get(ctx context.Context, id int64) (*db.Task, error) {
+func (ts *TaskStore) Get(ctx context.Context, id int64) (*Task, error) {
 
 	result, err := ts.queries.GetTask(ctx, id)
 	if err != nil {
 		return nil, err;	
 	}
 
-	return &result, nil
+	task := toDTO(result)
+
+	return &task, nil
 }
 
-func (ts *TaskStore) List(ctx context.Context) ([]db.Task, error) {
-	result, err := ts.queries.ListTasks(ctx)
+func (ts *TaskStore) List(ctx context.Context) ([]Task, error) {
+	results, err := ts.queries.ListTasks(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return result, nil
+	tasks := make([]Task, 0, len(results))
+
+	for i := range results {
+		result := toDTO(results[i])
+		tasks = append(tasks, result)
+	}
+
+	return tasks, nil
 }
 
 func (ts *TaskStore) Mark(ctx context.Context, id int64, status string) error {

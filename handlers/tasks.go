@@ -89,5 +89,17 @@ func (h *TaskHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TaskHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
 
+	err := h.Store.Delete(ctx, id)
+
+	if err != nil {
+		utils.WriteISError(w, fmt.Sprintf("%s", err))
+		return
+	}
+
+	utils.WriteJSONResponse(w, http.StatusOK, map[string]any{
+		"message": fmt.Sprintf("Task (%d) deleted successfully", id),
+	})
 }

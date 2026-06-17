@@ -32,6 +32,7 @@ func main() {
 	router.HandleFunc("POST /tasks", taskHandler.Create)
 	router.HandleFunc("GET /tasks/{id}", taskHandler.Get)
 	router.HandleFunc("PUT /tasks/{status}/{id}", taskHandler.Update)
+	router.HandleFunc("DELETE /tasks/{id}", taskHandler.Delete)
 
 	srv := http.Server{
 		Addr: ":8080",

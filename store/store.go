@@ -1,14 +1,18 @@
 package store
 
-import "github.com/nathan-the-coder/crud-tasks/db"
+import (
+	"time"
+
+	"github.com/nathan-the-coder/crud-tasks/db"
+)
 
 type Task struct {
-	Id          string  `json:"id"`
+	Id          int64   `json:"id"`
 	Title       string  `json:"title"`
 	Description string  `json:"description"`
 	Status      string  `json:"status"`
-	CompletedAt *string `json:"completed_at,omitempty"`
-	UpdatedAt   *string `json:"updated_at,omitempty"`
+	CompletedAt *time.Time `json:"completed_at,omitempty"`
+	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
 }
 
 type TaskStore struct {
