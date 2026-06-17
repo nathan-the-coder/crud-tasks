@@ -30,6 +30,26 @@ func toDTO(dbTask db.Task) models.Task {
 	return task
 }
 
+func (ts *TaskStore) Exists(ctx context.Context, title string) (bool, error) {
+	tasks, err := ts.queries.ListTasks(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	is_duplicate := false
+
+	for i := range tasks {
+		task := tasks[i]
+		if task.Title == title {
+			is_duplicate = true
+		} else {
+			is_duplicate = false
+		}
+	}
+
+	return is_duplicate, nil
+}
+
 func (ts *TaskStore) Create(ctx context.Context, title string, description string) (int64, error) {
 
 	arg := db.CreateTaskParams{
