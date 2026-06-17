@@ -84,8 +84,8 @@ func (h *TaskHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSONResponse(w, http.StatusOK, map[string]any{
-		"message": fmt.Sprintf("Task (%d) updated successfully.", id)
-		,
+		"message": fmt.Sprintf("Task (%d) updated successfully.", id),
+		
 	})
 }
 

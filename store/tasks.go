@@ -5,14 +5,15 @@ import (
 	"database/sql"
 
 	"github.com/nathan-the-coder/crud-tasks/db"
+	"github.com/nathan-the-coder/crud-tasks/models"
 )
 
 func NewTaskStore(q *db.Queries) *TaskStore {
 	return &TaskStore{queries: q}
 }
 
-func toDTO(dbTask db.Task) Task {
-	task := Task{
+func toDTO(dbTask db.Task) models.Task {
+	task := models.Task{
 		Id:          dbTask.ID,
 		Title:       dbTask.Title,
 		Description: dbTask.Description.String,
@@ -49,7 +50,7 @@ func (ts *TaskStore) Create(ctx context.Context, title string, description strin
 	return insertedTaskID, nil
 }
 
-func (ts *TaskStore) Get(ctx context.Context, id int64) (*Task, error) {
+func (ts *TaskStore) Get(ctx context.Context, id int64) (*models.Task, error) {
 
 	result, err := ts.queries.GetTask(ctx, id)
 	if err != nil {
@@ -61,13 +62,13 @@ func (ts *TaskStore) Get(ctx context.Context, id int64) (*Task, error) {
 	return &task, nil
 }
 
-func (ts *TaskStore) List(ctx context.Context) ([]Task, error) {
+func (ts *TaskStore) List(ctx context.Context) ([]models.Task, error) {
 	results, err := ts.queries.ListTasks(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	tasks := make([]Task, 0, len(results))
+	tasks := make([]models.Task, 0, len(results))
 
 	for i := range results {
 		result := toDTO(results[i])

@@ -1,7 +1,10 @@
 package main
 
 import (
-		_ "github.com/go-sql-driver/mysql"
+	"os"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 
 	"database/sql"
 	"fmt"
@@ -18,7 +21,15 @@ func main() {
 
 	router.HandleFunc("GET /health", handlers.HealthHandler)
 
-	sqlDB, err := sql.Open("mysql", "root:lein2324@/task_manager?parseTime=true")
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file.")
+	}
+
+	databaseURL := os.Getenv("DATABASE_URL")
+	port := os.Getenv("PORT")
+
+	sqlDB, err := sql.Open("mysql", databaseURL)
 	if err != nil {
 		log.Fatalf("Failed to open database: %s", err)
 	}
@@ -35,11 +46,11 @@ func main() {
 	router.HandleFunc("DELETE /tasks/{id}", taskHandler.Delete)
 
 	srv := http.Server{
-		Addr: ":8080",
+		Addr: fmt.Sprintf(":%s", port),
 		Handler: router,
 	}
 
-	fmt.Println("Starting server at :8080")
+	fmt.Println("Starting server at", port)
 	srv.ListenAndServe()
 }
 
