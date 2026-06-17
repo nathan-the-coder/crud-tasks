@@ -7,7 +7,6 @@ import (
 	"github.com/nathan-the-coder/crud-tasks/db"
 )
 
-
 func NewTaskStore(q *db.Queries) *TaskStore {
 	return &TaskStore{queries: q}
 }
@@ -33,7 +32,7 @@ func toDTO(dbTask db.Task) Task {
 func (ts *TaskStore) Create(ctx context.Context, title string, description string) (int64, error) {
 
 	arg := db.CreateTaskParams{
-		Title: title,
+		Title:       title,
 		Description: sql.NullString{String: description, Valid: true},
 	}
 
@@ -54,7 +53,7 @@ func (ts *TaskStore) Get(ctx context.Context, id int64) (*Task, error) {
 
 	result, err := ts.queries.GetTask(ctx, id)
 	if err != nil {
-		return nil, err;	
+		return nil, err
 	}
 
 	task := toDTO(result)
@@ -78,10 +77,26 @@ func (ts *TaskStore) List(ctx context.Context) ([]Task, error) {
 	return tasks, nil
 }
 
+func (ts *TaskStore) Update(ctx context.Context, id int64, newTitle string, newDescription string) error {
+	params := db.UpdateTaskParams{
+		ID:          id,
+		Title:       newTitle,
+		Description: sql.NullString{String: newDescription},
+	}
+
+	err := ts.queries.UpdateTask(ctx, params)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (ts *TaskStore) Mark(ctx context.Context, id int64, status string) error {
 
 	err := ts.queries.UpdateTaskStatus(ctx, db.UpdateTaskStatusParams{
-		ID: id,
+		ID:     id,
 		Status: db.TasksStatus(status),
 	})
 
